@@ -7,11 +7,18 @@ import numpy as np
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(page_title="Category Strategy Dashboard", layout="wide", initial_sidebar_state="collapsed")
 
+# Custom CSS to inject some extra sleekness (padding, font smoothing)
+st.markdown("""
+    <style>
+        .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+        h1, h2, h3 { font-family: 'Helvetica Neue', sans-serif; font-weight: 600; color: #1f2937; }
+        .stMetric { background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- 2. MOCK DATA GENERATION ---
 @st.cache_data
 def load_data():
-    # Brand Data: 6-8 brands per Country x Category combo.
-    # Added Price_Min and Price_Max to simulate price variance for the box/whisker look.
     brand_data = pd.DataFrame([
         # USA - Shampoo
         {"Country": "USA", "Category": "Shampoo", "Brand": "Pantene", "Share": 22, "Price": 5.00, "Price_Min": 3.50, "Price_Max": 7.00},
@@ -91,20 +98,20 @@ def load_data():
 
     demo_data = pd.DataFrame([
         # USA
-        {"Country": "USA", "Generation": "Gen Z", "Pop_Split": 20, "Avg_Income": 35000, "Growth_Rate": 12.5, "Price_Target": "Mass / Entry"},
-        {"Country": "USA", "Generation": "Millennials", "Pop_Split": 22, "Avg_Income": 85000, "Growth_Rate": 8.2, "Price_Target": "Premium"},
-        {"Country": "USA", "Generation": "Gen X", "Pop_Split": 19, "Avg_Income": 110000, "Growth_Rate": 2.1, "Price_Target": "Ultra-Premium"},
-        {"Country": "USA", "Generation": "Boomers", "Pop_Split": 21, "Avg_Income": 75000, "Growth_Rate": -3.5, "Price_Target": "Mid-Tier"},
+        {"Country": "USA", "Generation": "Gen Z", "Pop_Split": 20, "Avg_Income": 35000, "Growth_Rate": 12.5},
+        {"Country": "USA", "Generation": "Millennials", "Pop_Split": 22, "Avg_Income": 85000, "Growth_Rate": 8.2},
+        {"Country": "USA", "Generation": "Gen X", "Pop_Split": 19, "Avg_Income": 110000, "Growth_Rate": 2.1},
+        {"Country": "USA", "Generation": "Boomers", "Pop_Split": 21, "Avg_Income": 75000, "Growth_Rate": -3.5},
         # UK
-        {"Country": "UK", "Generation": "Gen Z", "Pop_Split": 19, "Avg_Income": 28000, "Growth_Rate": 11.0, "Price_Target": "Mass / Entry"},
-        {"Country": "UK", "Generation": "Millennials", "Pop_Split": 22, "Avg_Income": 65000, "Growth_Rate": 7.5, "Price_Target": "Premium"},
-        {"Country": "UK", "Generation": "Gen X", "Pop_Split": 20, "Avg_Income": 80000, "Growth_Rate": 1.5, "Price_Target": "Ultra-Premium"},
-        {"Country": "UK", "Generation": "Boomers", "Pop_Split": 22, "Avg_Income": 55000, "Growth_Rate": -4.0, "Price_Target": "Mid-Tier"},
+        {"Country": "UK", "Generation": "Gen Z", "Pop_Split": 19, "Avg_Income": 28000, "Growth_Rate": 11.0},
+        {"Country": "UK", "Generation": "Millennials", "Pop_Split": 22, "Avg_Income": 65000, "Growth_Rate": 7.5},
+        {"Country": "UK", "Generation": "Gen X", "Pop_Split": 20, "Avg_Income": 80000, "Growth_Rate": 1.5},
+        {"Country": "UK", "Generation": "Boomers", "Pop_Split": 22, "Avg_Income": 55000, "Growth_Rate": -4.0},
         # Germany
-        {"Country": "Germany", "Generation": "Gen Z", "Pop_Split": 18, "Avg_Income": 30000, "Growth_Rate": 10.5, "Price_Target": "Mass / Entry"},
-        {"Country": "Germany", "Generation": "Millennials", "Pop_Split": 20, "Avg_Income": 70000, "Growth_Rate": 6.8, "Price_Target": "Premium"},
-        {"Country": "Germany", "Generation": "Gen X", "Pop_Split": 23, "Avg_Income": 90000, "Growth_Rate": 1.0, "Price_Target": "Ultra-Premium"},
-        {"Country": "Germany", "Generation": "Boomers", "Pop_Split": 25, "Avg_Income": 60000, "Growth_Rate": -5.2, "Price_Target": "Mid-Tier"},
+        {"Country": "Germany", "Generation": "Gen Z", "Pop_Split": 18, "Avg_Income": 30000, "Growth_Rate": 10.5},
+        {"Country": "Germany", "Generation": "Millennials", "Pop_Split": 20, "Avg_Income": 70000, "Growth_Rate": 6.8},
+        {"Country": "Germany", "Generation": "Gen X", "Pop_Split": 23, "Avg_Income": 90000, "Growth_Rate": 1.0},
+        {"Country": "Germany", "Generation": "Boomers", "Pop_Split": 25, "Avg_Income": 60000, "Growth_Rate": -5.2},
     ])
 
     return brand_data, demo_data
@@ -115,12 +122,12 @@ df_brands, df_demos = load_data()
 st.title("🎯 Category Strategy & Audience Dashboard")
 st.markdown("Identify white space, track competitors, and target high-value cohorts.")
 
-# Top-level filters (Moved from sidebar)
-filter_col1, filter_col2 = st.columns(2)
-selected_country = filter_col1.selectbox("🌐 Select Country", options=["USA", "UK", "Germany"])
-selected_category = filter_col2.selectbox("🛍️ Select Category", options=["Shampoo", "Fragrances", "Moisturisers"])
+# Top-level filters
+filter_col1, filter_col2, _ = st.columns([1, 1, 2]) # Added an empty column to keep filters compact
+selected_country = filter_col1.selectbox("🌐 Market Selection", options=["USA", "UK", "Germany"])
+selected_category = filter_col2.selectbox("🛍️ Category Selection", options=["Shampoo", "Fragrances", "Moisturisers"])
 
-st.divider()
+st.markdown("<br>", unsafe_allow_html=True) # Sleek spacing
 
 # Apply Filters
 filtered_brands = df_brands[(df_brands["Country"] == selected_country) & (df_brands["Category"] == selected_category)]
@@ -136,112 +143,110 @@ kpi1.metric("👑 Market Leader (Volume)", f"{market_leader['Brand']}", f"{marke
 kpi2.metric("💰 Most Lucrative Cohort", f"{highest_earner['Generation']}", f"${highest_earner['Avg_Income']:,.0f} Avg Income")
 kpi3.metric("📈 Fastest Growing Cohort", f"{fastest_growing['Generation']}", f"+{fastest_growing['Growth_Rate']}% (5 Yr)")
 
-st.write("")
+st.divider()
 
-# --- 5. CHARTS LAYOUT ---
-col_left, col_right = st.columns((5, 4)) # 50/50 split roughly
+# Shared Layout configuration for a sleek, grid-less look
+sleek_layout_updates = dict(
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(0,0,0,0)",
+    xaxis=dict(showgrid=False, zeroline=False, showline=True, linecolor='#e5e7eb'),
+    yaxis=dict(showgrid=False, zeroline=False, showline=True, linecolor='#e5e7eb'),
+    margin=dict(l=40, r=40, t=40, b=40),
+    font=dict(color="#4b5563")
+)
 
-with col_left:
-    st.subheader("Where to Play: Brand Landscape")
-    st.markdown("Price elasticity vs Market Share (Shaded areas indicate cohort targets)")
-    
-    # Square / Box-and-Whisker style Scatter Chart
-    fig_brands = go.Figure()
-    
-    # Calculate target zones based on brand prices to map generations
-    max_price = filtered_brands['Price_Max'].max()
-    mass_threshold = filtered_brands['Price'].quantile(0.33)
-    premium_threshold = filtered_brands['Price'].quantile(0.75)
+# --- 5. CHART 1: BRAND LANDSCAPE (FULL WIDTH) ---
+st.subheader("1. Where to Play: Competitive Brand Landscape")
+st.markdown("Price elasticity vs Market Share. Shaded backgrounds indicate typical cohort purchasing power thresholds.")
 
-    # Shaded Overlays for Demographics
-    fig_brands.add_hrect(y0=0, y1=mass_threshold, line_width=0, fillcolor="rgba(173, 216, 230, 0.2)", annotation_text="Gen Z Target (Mass)", annotation_position="top right")
-    fig_brands.add_hrect(y0=mass_threshold, y1=premium_threshold, line_width=0, fillcolor="rgba(144, 238, 144, 0.2)", annotation_text="Millennial Target (Premium)", annotation_position="top right")
-    fig_brands.add_hrect(y0=premium_threshold, y1=max_price * 1.1, line_width=0, fillcolor="rgba(255, 182, 193, 0.2)", annotation_text="Gen X Target (Ultra-Premium)", annotation_position="top right")
+fig_brands = go.Figure()
 
-    # Brand markers with error bars (representing price range)
-    fig_brands.add_trace(go.Scatter(
-        x=filtered_brands["Share"],
-        y=filtered_brands["Price"],
-        mode="markers+text",
-        text=filtered_brands["Brand"],
-        textposition="top center",
-        marker=dict(symbol="square", size=14, color="royalblue", line=dict(width=2, color="darkblue")),
-        error_y=dict(
-            type='data',
-            symmetric=False,
-            array=filtered_brands["Price_Max"] - filtered_brands["Price"],
-            arrayminus=filtered_brands["Price"] - filtered_brands["Price_Min"],
-            color='gray',
-            thickness=1.5,
-            width=5
-        ),
-        name="Brands"
-    ))
+max_price = filtered_brands['Price_Max'].max()
+mass_threshold = filtered_brands['Price'].quantile(0.33)
+premium_threshold = filtered_brands['Price'].quantile(0.75)
 
-    fig_brands.update_layout(
-        height=450,
-        xaxis_title="Market Share (%)",
-        yaxis_title="Average Price (USD $)",
-        margin=dict(l=20, r=20, t=20, b=20),
-        showlegend=False
-    )
-    st.plotly_chart(fig_brands, use_container_width=True)
+# Shaded Overlays for Demographics (Soft, modern colors)
+fig_brands.add_hrect(y0=0, y1=mass_threshold, line_width=0, fillcolor="rgba(243, 244, 246, 0.8)", annotation_text="Gen Z / Entry Tier", annotation_position="top right", annotation_font_color="#9ca3af")
+fig_brands.add_hrect(y0=mass_threshold, y1=premium_threshold, line_width=0, fillcolor="rgba(224, 242, 254, 0.5)", annotation_text="Millennial / Premium Tier", annotation_position="top right", annotation_font_color="#7dd3fc")
+fig_brands.add_hrect(y0=premium_threshold, y1=max_price * 1.1, line_width=0, fillcolor="rgba(254, 240, 138, 0.3)", annotation_text="Gen X / Ultra-Premium Tier", annotation_position="top right", annotation_font_color="#fde047")
 
-with col_right:
-    st.subheader("Who to Target: Cohort Matrix")
-    st.markdown("Demographic deep-dive: Size, Wealth, and Momentum.")
+# Brand markers with error bars representing the price range
+fig_brands.add_trace(go.Scatter(
+    x=filtered_brands["Share"],
+    y=filtered_brands["Price"],
+    mode="markers+text",
+    text=filtered_brands["Brand"],
+    textposition="top center",
+    marker=dict(symbol="square", size=16, color="#2563eb", line=dict(width=2, color="#1e40af")),
+    error_y=dict(
+        type='data',
+        symmetric=False,
+        array=filtered_brands["Price_Max"] - filtered_brands["Price"],
+        arrayminus=filtered_brands["Price"] - filtered_brands["Price_Min"],
+        color='#9ca3af',
+        thickness=2,
+        width=6
+    ),
+    name="Brands"
+))
 
-    # Prepare data for Matrix Heatmap
-    generations = filtered_demos['Generation'].tolist()
-    
-    # Standardize data column-wise to create a proper heatmap color scale, 
-    # but display the raw text values inside the blocks.
-    pop = filtered_demos['Pop_Split'].values
-    inc = filtered_demos['Avg_Income'].values
-    gro = filtered_demos['Growth_Rate'].values
-    
-    # Normalized Z-values for coloring (0 to 1 scaling per column)
-    z_pop = (pop - pop.min()) / (pop.max() - pop.min())
-    z_inc = (inc - inc.min()) / (inc.max() - inc.min())
-    z_gro = (gro - gro.min()) / (gro.max() - gro.min())
-    z_matrix = np.array([z_pop, z_inc, z_gro]).T  # Transpose to match rows/cols
+fig_brands.update_layout(
+    height=500,
+    xaxis_title="Market Share (%)",
+    yaxis_title="Average Price (USD $)",
+    showlegend=False,
+    **sleek_layout_updates
+)
+st.plotly_chart(fig_brands, use_container_width=True)
 
-    # Raw text values for display
-    text_matrix = np.array([
-        [f"{p}%", f"${i:,.0f}", f"{g}%"] 
-        for p, i, g in zip(pop, inc, gro)
-    ])
+st.markdown("<br><br>", unsafe_allow_html=True)
 
-    fig_matrix = go.Figure(data=go.Heatmap(
-        z=z_matrix,
-        x=["Population Size", "Avg Income (USD)", "5-Yr Growth"],
-        y=generations,
-        text=text_matrix,
-        texttemplate="%{text}",
-        textfont={"size": 14, "color": "black"},
-        colorscale="Blues",
-        showscale=False,
-        hoverinfo="skip"
-    ))
+# --- 6. CHART 2: DEMOGRAPHIC BUBBLE CHART (FULL WIDTH) ---
+st.subheader("2. Who to Target: Cohort Momentum Matrix")
+st.markdown("Bubble size represents Total Population percentage. Visualizing the relationship between growing cohorts and their household wealth.")
 
-    fig_matrix.update_layout(
-        height=450,
-        margin=dict(l=20, r=20, t=20, b=20),
-        xaxis=dict(side="bottom")
-    )
-    st.plotly_chart(fig_matrix, use_container_width=True)
+fig_demos = px.scatter(
+    filtered_demos,
+    x="Growth_Rate",
+    y="Avg_Income",
+    size="Pop_Split",
+    color="Generation",
+    text="Generation",
+    size_max=80, # Larger bubbles for emphasis
+    color_discrete_sequence=px.colors.qualitative.Pastel
+)
 
+# Add quadrant lines based on averages
+avg_growth = filtered_demos['Growth_Rate'].mean()
+avg_inc = filtered_demos['Avg_Income'].mean()
+fig_demos.add_vline(x=avg_growth, line_width=1, line_dash="dash", line_color="#d1d5db")
+fig_demos.add_hline(y=avg_inc, line_width=1, line_dash="dash", line_color="#d1d5db")
 
-# --- 6. DYNAMIC INSIGHTS ENGINE ---
+# Clean styling and remove grid
+fig_demos.update_traces(textposition='top center', textfont=dict(color="#374151", size=14), marker=dict(line=dict(width=1, color='DarkSlateGrey')))
+fig_demos.update_layout(
+    height=500,
+    xaxis_title="5-Year Growth Rate (%)",
+    yaxis_title="Average Household Income (USD $)",
+    showlegend=False,
+    **sleek_layout_updates
+)
+# Ensure x-axis shows the zero point if there is negative growth
+fig_demos.update_xaxes(zeroline=True, zerolinewidth=1, zerolinecolor='#e5e7eb')
+
+st.plotly_chart(fig_demos, use_container_width=True)
+
+st.divider()
+
+# --- 7. DYNAMIC INSIGHTS ENGINE ---
 st.subheader("💡 Strategic Insights & White Space")
 
-# Calculate metrics for dynamic text
 premium_brands = filtered_brands[filtered_brands['Price'] > premium_threshold]
 mass_brands = filtered_brands[filtered_brands['Price'] <= mass_threshold]
 premium_brand_names = ", ".join(premium_brands['Brand'].tolist()) if not premium_brands.empty else "None"
 
 st.info(f"""
-* **The Gen Z Pipeline (Mass/Entry):** **{fastest_growing['Generation']}** is driving the most aggressive growth (+{fastest_growing['Growth_Rate']}%) in the {selected_country} market. The primary players targeting their price-points (Under ${mass_threshold:.2f}) are brands like {mass_brands['Brand'].iloc[0] if not mass_brands.empty else 'mass brands'}. To secure long-term category loyalty, focus innovation on accessible price points with high perceived value.
-* **The Premium White Space:** **{highest_earner['Generation']}** possesses the highest average income (${highest_earner['Avg_Income']:,.0f}). However, looking at the brand landscape, volume (Market Share) is heavily skewed toward the bottom half of the y-axis. Brands like {premium_brand_names} are currently capturing this demographic, but their lower market share suggests massive untapped potential for a "masstige" (mass-prestige) product line targeting this wealth density.
-* **Competitive Stance for {market_leader['Brand']}:** As the market leader, {market_leader['Brand']} holds a strong defensive position in volume. To drive margin expansion without losing share, they should explore strategic cross-selling or sub-branding targeted directly at the upwardly mobile Millennials mapped in the green shaded territory.
+* **The Momentum Play (Bottom-Right Quadrant):** **{fastest_growing['Generation']}** is driving the most aggressive growth (+{fastest_growing['Growth_Rate']}%) in {selected_country}. Tracking this back to the brand landscape, the primary players targeting their accessible price-points (Under ${mass_threshold:.2f}) are {mass_brands['Brand'].iloc[0] if not mass_brands.empty else 'mass-market labels'}. Winning this cohort now secures the category pipeline for the next decade.
+* **The Wealth Vacuum (Top-Left Quadrant):** **{highest_earner['Generation']}** commands the highest average income (${highest_earner['Avg_Income']:,.0f}) but is growing slower. On the brand chart, volume is heavily skewed toward the bottom half. Brands like {premium_brand_names} play here, but their low market share reveals massive untapped potential for a "masstige" line designed to capture this specific density of wealth.
+* **Defending the Crown:** As the absolute market leader, **{market_leader['Brand']}** holds a strong defensive position in volume. To drive margin expansion without cannibalizing core share, they should explore strategic sub-branding explicitly targeting the blue Millennial/Premium tier.
 """)
